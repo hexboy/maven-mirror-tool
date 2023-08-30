@@ -65,7 +65,7 @@ PROXIES:
   fodev: # The key is utilized in the proxy section of the repository configuration.
     host: fodev.org
     port: 8118
-    protocol: http # Protocol can be  "http" or "https" or "socks5".
+    protocol: http # The following protocols are supported: http, https, and socks5.
 
   local:
     host: 127.0.0.1
