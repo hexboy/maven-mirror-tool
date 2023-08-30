@@ -1,0 +1,61 @@
+DEFAULT_PATH: v1
+
+PORT: 8008
+CACHE_DIR: ./local-cache
+LOG_REQUESTS: false
+
+IGNORE_FILES:
+  - react-native-0.61.5.pom
+  - -sources.jar
+
+VALID_FILE_TYPES:
+  - .aar
+  - .jar
+  - .module
+  - .pom
+  - .sha1
+  - .xml
+  - .zip
+
+PROXIES:
+  fodev:
+    host: fodev.org
+    port: 8118
+    protocol: http
+
+  local:
+    host: 127.0.0.1
+    port: 1080
+    protocol: socks5
+
+SERVERS:
+  - name: iranrepo
+    url: https://gradle.iranrepo.ir
+    fileTypes:
+      - .jar
+      - .aar
+
+  - name: central
+    url: https://repo1.maven.org/maven2
+
+  - name: google
+    url: https://dl.google.com/dl/android/maven2
+    proxy: fodev
+
+  - name: google-aliyun
+    url: https://maven.aliyun.com/repository/google
+
+  - name: gradle
+    url: https://plugins.gradle.org/m2
+
+  - name: useinsider
+    url: https://mobilesdk.useinsider.com/android
+
+  - name: spring-aliyun
+    url: https://maven.aliyun.com/repository/spring
+
+  - name: kotlin-dev
+    url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev
+
+  - name: jitpack
+    url: https://jitpack.io/
