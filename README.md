@@ -1,6 +1,6 @@
 # Maven Repository Mirroring and Caching Tool
 
-This repository provides a solution for mirroring and caching multiple Maven repositories, offering a unified endpoint.This endpoint can then be utilized in `gradle.build` files to streamline your Gradle-based projects.
+This repository provides a solution for mirroring and caching multiple Maven repositories, providing a unified endpoint.This endpoint can then be utilized in `gradle.build` files to streamline your Gradle-based projects.
 
 ## Table of Contents
 
@@ -53,7 +53,7 @@ Follow these steps to set up the Maven repository mirroring and caching project:
 
 ### Configuration
 
-1. Duplicate the `config.yml` file and rename it to `config.local.yml` in the project root directory.
+1. Duplicate the `config.yml` file and rename the copy to `config.local.yml` in the project root directory.
 2. Open the `config.local.yml` file.
 3. Customize the `REPOSITORIES` array to include the Maven repositories you want to mirror and cache.
 4. Modify any other settings as needed, such as port number or caching options or proxy servers.
@@ -62,10 +62,10 @@ Here's an example configuration snippet:
 
 ```yaml
 PROXIES:
-  fodev: # this key is used in `proxy` section in repository config.
+  fodev: # The key is utilized in the proxy section of the repository configuration.
     host: fodev.org
     port: 8118
-    protocol: http # protocol can be  "http" or "https" or "socks5".
+    protocol: http # Protocol can be  "http" or "https" or "socks5".
 
   local:
     host: 127.0.0.1
@@ -75,14 +75,14 @@ PROXIES:
 REPOSITORIES:
   - name: central
     url: https://repo1.maven.org/maven2
-    fileTypes:   # optional: you can specified fileTypes to cache.
+    fileTypes:   # optional: FileTypes can be specified to be cached.
       - '.jar'   #
       - '.aar'   #
-    proxy: fodev # optional: select a proxy server
+    proxy: fodev # optional: Select a proxy server
 
   - name: private-repo
     url: https://repo.mycompany.com/maven
-    auth:                  # optional: authentication info
+    auth:                  # optional: Authentication info
       username: myusername #
       password: mypassword #
 ```
