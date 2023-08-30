@@ -4,11 +4,11 @@
   "main": "index.ts",
   "license": "MIT",
   "author": {
-    "name": "Hasan Yousefi",
+    "name": "Hassan Yousefi",
     "email": "hexboy2011@gmail.com",
     "url": "https://hexboy.ir"
   },
-  "homepage": "https://github.com/hexboy/maven-multi-server-local-mirror",
+  "homepage": "https://github.com/hexboy/maven-mirror-tool",
   "scripts": {
     "start": "tsx index.ts"
   },
