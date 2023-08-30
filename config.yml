@@ -28,7 +28,7 @@ PROXIES:
     port: 1080
     protocol: socks5
 
-SERVERS:
+REPOSITORIES:
   - name: iranrepo
     url: https://gradle.iranrepo.ir
     fileTypes:

@@ -14,7 +14,7 @@ const config = yaml.load(
 ) as IConfig;
 const args = minimist(process.argv);
 
-const { SERVERS, PROXIES, IGNORE_FILES = [], VALID_FILE_TYPES = [] } = config;
+const { REPOSITORIES, PROXIES, IGNORE_FILES = [], VALID_FILE_TYPES = [] } = config;
 
 const port = args.port || config.PORT || 8008;
 const cacheDir = args['cache-dir'] || config.CACHE_DIR;
@@ -28,7 +28,7 @@ if (!fs.existsSync(path.resolve(cacheBaseDir, '_tmp_'))) {
 }
 
 const getCachedPath = (filePath: string) => {
-  const srv = SERVERS.find((s) => {
+  const srv = REPOSITORIES.find((s) => {
     const fPath = path.join(cacheBaseDir, s.code, filePath);
     if (fs.existsSync(fPath) ? fs.statSync(fPath).size : 0) {
       console.log(`📦 [${s.code}]`, filePath);
@@ -76,7 +76,7 @@ const downloadFile = async (url: string, res: any) => {
     console.log('❌ [404]', url);
     return res.sendStatus(404);
   }
-  for await (const srv of SERVERS) {
+  for await (const srv of REPOSITORIES) {
     const fileName = url.split('/').pop() || '';
     const outputDir = path
       .join(cacheBaseDir, srv.code, url)

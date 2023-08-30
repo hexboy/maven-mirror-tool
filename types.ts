@@ -18,7 +18,7 @@ type TServer = {
 interface IConfig {
   PORT: number;
   CACHE_DIR: string;
-  SERVERS: TServer[];
+  REPOSITORIES: TServer[];
   DEFAULT_PATH: string;
   LOG_REQUESTS?: boolean;
   IGNORE_FILES?: string[];
