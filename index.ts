@@ -29,14 +29,14 @@ if (!fs.existsSync(path.resolve(cacheBaseDir, '_tmp_'))) {
 
 const getCachedPath = (filePath: string) => {
   const srv = REPOSITORIES.find((s) => {
-    const fPath = path.join(cacheBaseDir, s.code, filePath);
+    const fPath = path.join(cacheBaseDir, s.name, filePath);
     if (fs.existsSync(fPath) ? fs.statSync(fPath).size : 0) {
-      console.log(`📦 [${s.code}]`, filePath);
+      console.log(`📦 [${s.name}]`, filePath);
       return true;
     }
     return false;
   });
-  return srv ? path.join(cacheBaseDir, srv.code, filePath) : null;
+  return srv ? path.join(cacheBaseDir, srv.name, filePath) : null;
 };
 
 const download = async (url: string, outputDir: string, srv: TServer) => {
@@ -63,7 +63,7 @@ const download = async (url: string, outputDir: string, srv: TServer) => {
           fs.mkdirSync(outputDir, { recursive: true });
         }
         fs.renameSync(tmpPath, path.join(outputDir, fileName));
-        return resolve(srv.code);
+        return resolve(srv.name);
       } else {
         return resolve(null);
       }
@@ -79,7 +79,7 @@ const downloadFile = async (url: string, res: any) => {
   for await (const srv of REPOSITORIES) {
     const fileName = url.split('/').pop() || '';
     const outputDir = path
-      .join(cacheBaseDir, srv.code, url)
+      .join(cacheBaseDir, srv.name, url)
       .replace(fileName, '');
     const downloadedFrom = await download(url, outputDir, srv);
     if (downloadedFrom) {

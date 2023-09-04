@@ -5,7 +5,7 @@ type TProxy = {
 };
 
 type TServer = {
-  code: string;
+  name: string;
   url: string;
   fileTypes?: string[];
   proxy?: string;
