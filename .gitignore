@@ -130,7 +130,8 @@ dist
 .pnp.*
 
 # local cache prefix
-__MMSLM_CACHE__/
+__MMT_CACHE__/
 
 # local config file
 config.local.yml
+.DS_Store

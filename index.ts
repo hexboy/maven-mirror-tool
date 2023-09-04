@@ -21,7 +21,7 @@ const cacheDir = args['cache-dir'] || config.CACHE_DIR;
 const defaultPath = args.path || config.DEFAULT_PATH || 'v1';
 const verbose = args.verbose || config.LOG_REQUESTS || false;
 
-const cacheBaseDir = path.resolve(cacheDir, '__MMSLM_CACHE__');
+const cacheBaseDir = path.resolve(cacheDir, '__MMT_CACHE__');
 
 if (!fs.existsSync(path.resolve(cacheBaseDir, '_tmp_'))) {
   fs.mkdirSync(path.resolve(cacheBaseDir, '_tmp_'), { recursive: true });
