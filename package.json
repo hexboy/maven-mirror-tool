@@ -1,5 +1,5 @@
 {
-  "name": "maven-multi-server-local-mirror",
+  "name": "maven-mirror-tool",
   "version": "1.0.0",
   "main": "index.ts",
   "license": "MIT",
