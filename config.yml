@@ -48,6 +48,9 @@ REPOSITORIES:
   - name: gradle
     url: https://plugins.gradle.org/m2
 
+  - name: apache
+    url: https://repo.maven.apache.org/maven2
+
   - name: useinsider
     url: https://mobilesdk.useinsider.com/android
 
@@ -58,4 +61,4 @@ REPOSITORIES:
     url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev
 
   - name: jitpack
-    url: https://jitpack.io/
+    url: https://jitpack.io
