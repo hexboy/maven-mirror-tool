@@ -2,6 +2,10 @@ type TProxy = {
   protocol: 'http' | 'https' | 'socks5';
   host: string;
   port: number;
+  auth?: {
+    username: string;
+    password: string;
+  };
 };
 
 type TServer = {

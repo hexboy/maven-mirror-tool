@@ -22,6 +22,10 @@ const CACHE_DIR = path.resolve(
   args['cache-dir'] || config.CACHE_DIR,
   '__MMT_CACHE__'
 );
+const TMP_DIR = path.resolve(
+  args['cache-dir'] || config.CACHE_DIR,
+  '__MMT_TMP__'
+);
 const DEFAULT_PATH = args.path || config.DEFAULT_PATH || 'v1';
 const VERBOSE = args.verbose || config.LOG_REQUESTS || false;
 
@@ -29,6 +33,7 @@ export {
   PORT,
   PROXIES,
   VERBOSE,
+  TMP_DIR,
   CACHE_DIR,
   DEFAULT_PATH,
   IGNORE_FILES,

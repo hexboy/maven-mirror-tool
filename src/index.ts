@@ -6,20 +6,21 @@ import express, { RequestHandler } from 'express';
 
 import {
   PORT,
+  TMP_DIR,
   VERBOSE,
   CACHE_DIR,
   DEFAULT_PATH,
   IGNORE_FILES,
   VALID_FILE_TYPES,
 } from './config';
-import { downloadFile, getCachedPath } from './utils';
+import { getCachedServer } from './utils';
+import { GotDownloader } from './downloader/got';
+
+const downloader = new GotDownloader();
 
 const cacheRequestHandler: RequestHandler = (req, res, next) => {
   const url = (req.originalUrl || req.url).replace(/^\/\w+\//, '/');
-  if (req.method === 'HEAD') {
-    return res.sendStatus(200);
-  }
-  if (req.method !== 'GET') {
+  if (req.method !== 'HEAD' && req.method !== 'GET') {
     return res.sendStatus(403);
   }
 
@@ -31,21 +32,44 @@ const cacheRequestHandler: RequestHandler = (req, res, next) => {
     return next();
   }
 
-  const cachedPath = getCachedPath(url);
-  if (cachedPath) {
-    return res.sendFile(cachedPath);
-  }
-  console.log(req.method, url);
   if (IGNORE_FILES.find((str) => url.includes(str))) {
     console.log('❌ [404]', url);
     return res.status(404);
   }
-  return downloadFile(url, res);
+
+  const server = getCachedServer(url);
+  if (server) {
+    const cachedPath = path.join(CACHE_DIR, server.name, url);
+    console.log(`📦 [${server.name}]`, url);
+    return res.sendFile(cachedPath);
+  }
+
+  console.log(req.method, url);
+
+  downloader
+    .getSupportedServer(url)
+    .then((srv) => {
+      if (srv) {
+        if (req.method === 'HEAD') {
+          downloader.head(url, srv, res);
+        } else {
+          downloader.download(url, srv, res);
+        }
+      } else {
+        res.sendStatus(403);
+      }
+    })
+    .catch(() => res.sendStatus(403));
 };
 
 // init cache dir
-if (!fs.existsSync(path.resolve(CACHE_DIR, '_tmp_'))) {
-  fs.mkdirSync(path.resolve(CACHE_DIR, '_tmp_'), { recursive: true });
+if (!fs.existsSync(path.resolve(CACHE_DIR))) {
+  fs.mkdirSync(path.resolve(CACHE_DIR), { recursive: true });
+}
+
+// init temp dir
+if (!fs.existsSync(path.resolve(TMP_DIR))) {
+  fs.mkdirSync(path.resolve(TMP_DIR), { recursive: true });
 }
 
 const app = express();
