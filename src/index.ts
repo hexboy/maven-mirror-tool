@@ -13,7 +13,7 @@ import {
   IGNORE_FILES,
   VALID_FILE_TYPES,
 } from './config';
-import { getCachedServer } from './utils';
+import { getCachedServer, printServedEndpoints } from './utils';
 import { GotDownloader } from './downloader/got';
 
 const downloader = new GotDownloader();
@@ -78,7 +78,6 @@ if (VERBOSE) {
 }
 app.get('*', cacheRequestHandler);
 app.listen(PORT, () => {
-  console.log(`Serving! http://0.0.0.0:${PORT}/${DEFAULT_PATH}\n`);
   console.log('add this ⬇️  in build.gradle');
   console.log(
     chalk.green(
@@ -88,9 +87,11 @@ app.listen(PORT, () => {
   console.log('\nadd this ⬇️  in build.gradle.kts');
   console.log(
     chalk.green(
-      `maven { url = uri("http://127.0.0.1:${PORT}/${DEFAULT_PATH}")\nisAllowInsecureProtocol = true }`
+      `maven {\n  url = uri("http://127.0.0.1:${PORT}/${DEFAULT_PATH}")\n  isAllowInsecureProtocol = true\n}`
     )
   );
+
+  printServedEndpoints(PORT, DEFAULT_PATH);
 });
 
 // help:
