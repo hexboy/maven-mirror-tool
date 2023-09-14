@@ -65,12 +65,20 @@ PROXIES:
   fodev: # The key is utilized in the proxy section of the repository configuration.
     host: fodev.org
     port: 8118
-    protocol: http # The following protocols are supported: http, https, and socks5.
+    protocol: http # The following protocols are supported: http, https, and socks.
+
+  private:
+    host: myserver.com
+    port: 1080
+    protocol: socks
+    auth:                  # optional: Authentication info
+      username: myusername #
+      password: mypassword #
 
   local:
     host: 127.0.0.1
     port: 1080
-    protocol: socks5
+    protocol: socks
 
 REPOSITORIES:
   - name: central
@@ -97,15 +105,29 @@ REPOSITORIES:
 
 2. Update your Gradle `build.gradle` files to use the local endpoint for Maven dependencies:
 
-   ```gradle
-   repositories {
-       mavenLocal();
-       // add local mirror server after mavenLocal()
-       maven {
-           url 'http://127.0.0.1:8008/v1' // Replace with your configured port
-       }
-   }
-   ```
+```groovy
+buildscript {
+    repositories {
+        mavenLocal();
+        maven { url "http://127.0.0.1:8008/v1"; allowInsecureProtocol true } // Replace with your configured port
+        ...
+    }
+}
+allprojects {
+    buildscript {
+        repositories {
+            mavenLocal()
+            maven { url "http://127.0.0.1:8008/v1"; allowInsecureProtocol true }
+            ...
+        }
+    }
+    repositories {
+        mavenLocal()
+        maven { url "http://127.0.0.1:8008/v1"; allowInsecureProtocol true }
+        ...
+    }
+}
+```
 
 3. Run your Gradle builds as usual. The tool will intercept and resolve dependencies from the local endpoint, caching them if needed.
 
