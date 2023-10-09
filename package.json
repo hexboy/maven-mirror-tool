@@ -10,7 +10,10 @@
   },
   "homepage": "https://github.com/hexboy/maven-mirror-tool",
   "scripts": {
-    "start": "tsx src/index.ts"
+    "start": "pm2 start --attach",
+    "logs": "pm2 logs",
+    "monit": "pm2 monit",
+    "stop": "pm2 delete mmt-server"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -19,6 +22,7 @@
     "js-yaml": "^4.1.0",
     "minimist": "^1.2.8",
     "morgan": "^1.10.0",
+    "pm2": "^5.3.0",
     "proxy-agent": "^6.3.1",
     "tsx": "^3.12.10",
     "typescript": "^5.2.2"
