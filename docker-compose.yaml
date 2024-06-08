@@ -1,0 +1,12 @@
+
+services:
+  maven:
+    image: mra9776/maven-mirror-tool:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    volumes:
+      - $PWD/local-cache:/home/node/app/local-cache
+    ports:
+      - 0.0.0.0:8008:8008
