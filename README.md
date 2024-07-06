@@ -40,16 +40,16 @@ Follow these steps to set up the Maven repository mirroring and caching project:
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/hexboy/maven-mirror-tool.git
-   cd maven-mirror-tool
-   ```
+```bash
+git clone https://github.com/hexboy/maven-mirror-tool.git
+cd maven-mirror-tool
+```
 
 2. Install dependencies using Yarn:
 
-   ```bash
-   yarn install
-   ```
+```bash
+yarn install
+```
 
 ### Configuration
 
@@ -99,9 +99,9 @@ REPOSITORIES:
 
 1. Start the Maven Repository Mirroring and Caching Tool:
 
-   ```bash
-   yarn start
-   ```
+```bash
+yarn start
+```
 
 2. Update your Gradle `build.gradle` files to use the local endpoint for Maven dependencies:
 
@@ -130,6 +130,35 @@ allprojects {
 ```
 
 3. Run your Gradle builds as usual. The tool will intercept and resolve dependencies from the local endpoint, caching them if needed.
+
+## Using the Docker Image
+
+You can also run the Maven Repository Mirroring and Caching Tool using Docker. This can simplify deployment and ensure consistency across different environments.
+
+To use the Docker image `hexboy2011/maven-mirror-tool:latest`, follow these steps:
+
+1. Pull the Docker image:
+
+```bash
+docker pull hexboy2011/maven-mirror-tool:latest
+```
+
+2. Run the Docker container, mapping port 8008 and binding the cache directory:
+
+```bash
+docker run -d \
+-p 8008:8008 \
+-v /your/custom/cache/dir:/home/node/app/local-cache \
+hexboy2011/maven-mirror-tool:latest
+```
+
+### In this example
+
+- `-d`: Starts the container as a daemon, running it in the background.
+
+- `-p 8008:8008`: Maps port 8008 on your host to port 8008 in the container.
+
+- `-v /your/custom/cache/dir:/home/node/app/local-cache`: Binds the directory /your/custom/cache/dir on your host to /home/node/app/local-cache in the container, allowing the container to store cached artifacts locally.
 
 ## Contributing
 
