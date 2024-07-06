@@ -1,0 +1,9 @@
+services:
+  mirror:
+    image: hexboy2011/maven-mirror-tool
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+    ports:
+      - 8008:8008
