@@ -30,7 +30,7 @@ PROXIES:
 
 REPOSITORIES:
   - name: iranrepo
-    url: https://gradle.iranrepo.ir
+    url: https://repo.ito.gov.ir/gradle/maven_central/
     fileTypes:
       - .jar
       - .aar
@@ -51,8 +51,8 @@ REPOSITORIES:
   - name: apache
     url: https://repo.maven.apache.org/maven2
 
-  - name: useinsider
-    url: https://mobilesdk.useinsider.com/android
+  # - name: useinsider
+  #   url: https://mobilesdk.useinsider.com/android
 
   - name: spring-aliyun
     url: https://maven.aliyun.com/repository/spring

@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import chalk from 'chalk';
-import morgan from 'morgan';
-import express, { RequestHandler } from 'express';
+import fs from "fs";
+import path from "path";
+import chalk from "chalk";
+import morgan from "morgan";
+import express, { RequestHandler } from "express";
 
 import {
   PORT,
@@ -12,28 +12,28 @@ import {
   DEFAULT_PATH,
   IGNORE_FILES,
   VALID_FILE_TYPES,
-} from './config';
-import { getCachedServer, printServedEndpoints, logger } from './utils';
-import { GotDownloader } from './downloader/got';
+} from "./config";
+import { getCachedServer, printServedEndpoints, logger } from "./utils";
+import { GotDownloader } from "./downloader/got";
 
 const downloader = new GotDownloader();
 
-const cacheRequestHandler: RequestHandler = (req, res, next) => {
-  const url = (req.originalUrl || req.url).replace(/^\/\w+\//, '/');
-  if (req.method !== 'HEAD' && req.method !== 'GET') {
+const cacheRequestHandler: RequestHandler = async (req, res, next) => {
+  const url = (req.originalUrl || req.url).replace(/^\/\w+\//, "/");
+  if (req.method !== "HEAD" && req.method !== "GET") {
     return res.sendStatus(403);
   }
 
-  const fileName = url.split('/').pop() || '';
-  const fileType = fileName.slice(fileName.lastIndexOf('.'));
+  const fileName = url.split("/").pop() || "";
+  const fileType = fileName.slice(fileName.lastIndexOf("."));
 
   if (!VALID_FILE_TYPES.includes(fileType)) {
-    console.log('♻️', url);
+    console.log("♻️", url);
     return next();
   }
 
   if (IGNORE_FILES.find((str) => url.includes(str))) {
-    console.log('❌ [404]', url);
+    console.log("❌ [404]", url);
     return res.status(404);
   }
 
@@ -46,23 +46,19 @@ const cacheRequestHandler: RequestHandler = (req, res, next) => {
 
   console.log(req.method, url);
 
-  downloader
-    .getSupportedServer(url)
-    .then((srv) => {
-      if (srv) {
-        if (req.method === 'HEAD') {
-          downloader.head(url, srv, res);
-        } else {
-          downloader.download(url, srv, res);
-        }
-      } else {
-        res.sendStatus(403);
-      }
-    })
-    .catch((e) => {
-      logger.info(e)
-      return res.sendStatus(403);
-    });
+  var srv = await downloader.getSupportedServer(url);
+
+  if (srv) {
+    if (req.method === "HEAD") {
+      return downloader.head(url, srv, res);
+    } else {
+      return downloader.download(url, srv, res);
+    }
+  } else {
+    res.sendStatus(403);
+  }
+  // logger.info(e);
+  return res.sendStatus(403);
 };
 
 // init cache dir
@@ -77,19 +73,19 @@ if (!fs.existsSync(path.resolve(TMP_DIR))) {
 
 const app = express();
 if (VERBOSE) {
-  app.use(morgan('combined'));
+  app.use(morgan("combined"));
 }
-app.get('*', async (req, res, next) => {
+app.get("*", async (req, res, next) => {
   await cacheRequestHandler(req, res, next);
 });
 app.listen(PORT, () => {
-  console.log('add this ⬇️  in build.gradle');
+  console.log("add this ⬇️  in build.gradle");
   console.log(
     chalk.green(
       `maven { url "http://127.0.0.1:${PORT}/${DEFAULT_PATH}"; allowInsecureProtocol true }`
     )
   );
-  console.log('\nadd this ⬇️  in build.gradle.kts');
+  console.log("\nadd this ⬇️  in build.gradle.kts");
   console.log(
     chalk.green(
       `maven {\n  url = uri("http://127.0.0.1:${PORT}/${DEFAULT_PATH}")\n  isAllowInsecureProtocol = true\n}`

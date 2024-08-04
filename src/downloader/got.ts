@@ -2,6 +2,8 @@ import path from "path";
 import got, { GotOptions, HTTPError } from "got";
 import type { Response } from "express";
 import fs, { createWriteStream } from "fs";
+import { HttpsAgent } from "agentkeepalive";
+("agentkeepalive");
 
 import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from "../config";
 import { ProxyAgent } from "proxy-agent";
@@ -15,10 +17,18 @@ export class GotDownloader {
     };
   } = {};
 
+  agentsMap: {
+    [K: string]: {
+      agent: ProxyAgent | null;
+    };
+  } = {};
+
   getAgent = (srv: TServer) => {
     const proxy = srv.proxy && srv.proxy in PROXIES ? PROXIES[srv.proxy] : null;
     if (proxy) {
       return new ProxyAgent({
+        httpAgent: new HttpsAgent(),
+        httpsAgent: new HttpsAgent(),
         getProxyForUrl: () =>
           proxy.auth
             ? `${proxy.protocol}://${proxy.auth.username}:${proxy.auth.password}@${proxy.host}:${proxy.port}`
@@ -30,7 +40,13 @@ export class GotDownloader {
 
   getOptions = (srv: TServer, method: "get" | "head" = "get") => {
     const options: GotOptions<typeof method> = { method };
-    const agent = this.getAgent(srv);
+    var agent: ProxyAgent | null;
+    if (this.agentsMap[srv.name] != null) {
+      agent = this.agentsMap[srv.name].agent;
+    } else {
+      agent = this.getAgent(srv);
+      this.agentsMap[srv.name] = { agent: agent };
+    }
     if (agent) {
       options.agent = {
         http: agent,
@@ -105,9 +121,9 @@ export class GotDownloader {
         res.set(r.headers);
         res.sendStatus(r.statusCode);
       })
-      .catch((r) => {
-        console.log(`✅ [${r}]`, url);
-        res.sendStatus(r.statusCode);
+      .catch((e) => {
+        console.log(`X [${e}]: s=${e.response.statusCode}:${srv.url}${url}`);
+        res.sendStatus(e.response.statusCode);
       });
   };
 
@@ -116,6 +132,10 @@ export class GotDownloader {
     const tmpPath = path.resolve(TMP_DIR, fileName);
     const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, "");
     const stream = got.stream(srv.url + url, this.getOptions(srv));
+    stream.on("error", (e, _body?, _res?) => {
+      console.log(`X [${e}]: s=${e.response.statusCode}:${srv.url}${url}`);
+      res.sendStatus(e.response?.statusCode)
+    });
     const fileWriterStream = createWriteStream(tmpPath);
     stream.pipe(fileWriterStream).on("finish", () => {
       console.log(`✅ [${srv.name}]`, url);
@@ -123,7 +143,9 @@ export class GotDownloader {
       delete this.db[url];
     });
 
-    stream.pipe(res).on("error", console.error);
+    stream.pipe(res).on("error", (error: any, _body?: any) => {
+      console.error(error);
+    });
   };
 
   moveToCache = (fileName: string, outputDir: string) => {
