@@ -1,11 +1,13 @@
-import path from 'path';
-import got, { GotOptions } from 'got';
-import type { Response } from 'express';
-import fs, { createWriteStream } from 'fs';
+import path from "path";
+import got, { GotOptions, HTTPError } from "got";
+import type { Response } from "express";
+import fs, { createWriteStream } from "fs";
 
-import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config';
-import { ProxyAgent } from 'proxy-agent';
+import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from "../config";
+import { ProxyAgent } from "proxy-agent";
+import { logger } from "../utils";
 
+console.log("fdsfsfd");
 export class GotDownloader {
   db: {
     [K: string]: {
@@ -26,7 +28,7 @@ export class GotDownloader {
     return null;
   };
 
-  getOptions = (srv: TServer, method: 'get' | 'head' = 'get') => {
+  getOptions = (srv: TServer, method: "get" | "head" = "get") => {
     const options: GotOptions<typeof method> = { method };
     const agent = this.getAgent(srv);
     if (agent) {
@@ -40,10 +42,10 @@ export class GotDownloader {
       options.headers = {};
       options.headers.authorization = `Basic ${Buffer.from(
         `${srv.auth.username}:${srv.auth.password}`
-      ).toString('base64')}`;
+      ).toString("base64")}`;
     }
 
-    if (method === 'head') {
+    if (method === "head") {
       options.timeout = { request: 5000 };
     }
 
@@ -51,52 +53,77 @@ export class GotDownloader {
   };
 
   checkServer = (url: string, srv: TServer) => {
-    const options = this.getOptions(srv, 'head');
-    return got.head(srv.url + url, options);
+    const options = this.getOptions(srv, "head");
+
+    return got.head(srv.url + url, options).catch((error) => {
+      if (error instanceof HTTPError && error.response.statusCode == 404)
+        return null;
+      logger.error(`hit ${url} with ${srv.url + url} ${error}`);
+      return null;
+    });
+  };
+
+  getMatchUrlWithServer = (url: string): TServer | null => {
+    for (const element of REPOSITORIES) {
+      if (element.paths == null || element.paths.length == 0) continue;
+      for (const path of element.paths) {
+        if (url.includes(path)) return element;
+      }
+    }
+    return null;
   };
 
   getSupportedServer = async (url: string) => {
+    var matched: TServer | null = this.getMatchUrlWithServer(url);
+    if (matched != null) {
+      return matched;
+    }
     if (this.db[url]?.serverIndex) {
       return REPOSITORIES[this.db[url].serverIndex];
     }
     const gotPromises = REPOSITORIES.map((srv) => this.checkServer(url, srv));
-    return Promise.any(gotPromises.map((req, index) => req.then(() => index)))
+    return Promise.any(
+      gotPromises.map((req, index) =>
+        req.then((resp) => {
+          if (resp == null) return Promise.reject();
+          return index;
+        })
+      )
+    )
       .then((index) => {
-        // cancel all got requests
-        gotPromises.forEach((req) => req.cancel());
-        this.db[url] = {
-          serverIndex: index,
-        };
         return REPOSITORIES[index];
       })
-      .catch(() => null);
+      .catch((e) => {
+        logger.error(`hit exception ${e}`);
+      });
   };
 
   head = (url: string, srv: TServer, res: Response) => {
     return got
-      .head(srv.url + url, this.getOptions(srv, 'head'))
+      .head(srv.url + url, this.getOptions(srv, "head"))
       .then((r) => {
         res.set(r.headers);
         res.sendStatus(r.statusCode);
       })
       .catch((r) => {
+        console.log(`✅ [${r}]`, url);
         res.sendStatus(r.statusCode);
       });
   };
 
   download = (url: string, srv: TServer, res: Response) => {
-    const fileName = url.split('/').pop() || '';
+    const fileName = url.split("/").pop() || "";
     const tmpPath = path.resolve(TMP_DIR, fileName);
-    const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, '');
+    const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, "");
     const stream = got.stream(srv.url + url, this.getOptions(srv));
     const fileWriterStream = createWriteStream(tmpPath);
-    stream.pipe(fileWriterStream).on('finish', () => {
+    stream.pipe(fileWriterStream).on("finish", () => {
       console.log(`✅ [${srv.name}]`, url);
       this.moveToCache(fileName, outputDir);
       delete this.db[url];
     });
 
-    stream.pipe(res).on('error', console.error);
+    stream.pipe(res).on("error", console.error);
   };
 
   moveToCache = (fileName: string, outputDir: string) => {

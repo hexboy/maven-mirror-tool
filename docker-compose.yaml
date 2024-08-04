@@ -5,8 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    
+
+    restart: unless-stopped
     volumes:
       - $PWD/local-cache:/home/node/app/local-cache
+      - $PWD/config.local.yml:/home/node/app/config.local.yml
     ports:
       - 0.0.0.0:8008:8008

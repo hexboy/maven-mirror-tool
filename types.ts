@@ -12,6 +12,7 @@ type TServer = {
   name: string;
   url: string;
   fileTypes?: string[];
+  paths?: string[];
   proxy?: string;
   auth?: {
     username: string;

@@ -46,3 +46,14 @@ export const printServedEndpoints = (port: number | string, urlPath: string) => 
     console.log('--------------------------------------------');
   }
 };
+
+
+const winston = require("winston");
+export const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "logs/app.log" }),
+  ],
+});

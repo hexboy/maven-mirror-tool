@@ -13,7 +13,7 @@ import {
   IGNORE_FILES,
   VALID_FILE_TYPES,
 } from './config';
-import { getCachedServer, printServedEndpoints } from './utils';
+import { getCachedServer, printServedEndpoints, logger } from './utils';
 import { GotDownloader } from './downloader/got';
 
 const downloader = new GotDownloader();
@@ -59,7 +59,10 @@ const cacheRequestHandler: RequestHandler = (req, res, next) => {
         res.sendStatus(403);
       }
     })
-    .catch(() => res.sendStatus(403));
+    .catch((e) => {
+      logger.info(e)
+      return res.sendStatus(403);
+    });
 };
 
 // init cache dir
@@ -76,7 +79,9 @@ const app = express();
 if (VERBOSE) {
   app.use(morgan('combined'));
 }
-app.get('*', cacheRequestHandler);
+app.get('*', async (req, res, next) => {
+  await cacheRequestHandler(req, res, next);
+});
 app.listen(PORT, () => {
   console.log('add this ⬇️  in build.gradle');
   console.log(
