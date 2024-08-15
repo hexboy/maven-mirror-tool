@@ -3,6 +3,7 @@ services:
     image: hexboy2011/maven-mirror-tool
     build:
       context: .
+    restart: unless-stopped
     environment:
       NODE_ENV: production
     ports:
