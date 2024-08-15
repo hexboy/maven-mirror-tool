@@ -30,7 +30,7 @@ PROXIES:
 
 REPOSITORIES:
   - name: iranrepo
-    url: https://gradle.iranrepo.ir
+    url: https://repo.ito.gov.ir/gradle/maven-central
     fileTypes:
       - .jar
       - .aar
