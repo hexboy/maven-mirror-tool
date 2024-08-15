@@ -51,9 +51,6 @@ REPOSITORIES:
   - name: apache
     url: https://repo.maven.apache.org/maven2
 
-  - name: useinsider
-    url: https://mobilesdk.useinsider.com/android
-
   - name: spring-aliyun
     url: https://maven.aliyun.com/repository/spring
 
