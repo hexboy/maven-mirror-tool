@@ -25,8 +25,11 @@ USER node
 # Copy the rest of the source files into the image.
 COPY --chown=node . .
 
+# Install packages
+RUN yarn workspaces focus --production && yarn cache clean
+
 # Expose the port that the application listens on.
 EXPOSE 8008
 
 # Run the application.
-CMD yarn workspaces focus --production && yarn run pm2 start --attach --env ${NODE_ENV}
+ENTRYPOINT ["yarn", "run", "pm2", "start", "--attach", "--env", "${NODE_ENV}"]
