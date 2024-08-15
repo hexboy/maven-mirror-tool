@@ -19,7 +19,7 @@ type TServer = {
   };
 };
 
-interface IConfig {
+export interface IConfig {
   PORT: number;
   CACHE_DIR: string;
   REPOSITORIES: TServer[];

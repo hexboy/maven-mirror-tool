@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import minimist from 'minimist';
+import { IConfig } from '../types';
 
 const config = yaml.load(
   fs.existsSync('config.local.yml')

@@ -15,7 +15,10 @@ export const getCachedServer = (filePath: string) => {
   return srv;
 };
 
-export const printServedEndpoints = (port: number | string, urlPath: string) => {
+export const printServedEndpoints = (
+  port: number | string,
+  urlPath: string
+) => {
   try {
     const interfaces = os.networkInterfaces();
     const list = Object.keys(interfaces)
@@ -38,7 +41,9 @@ export const printServedEndpoints = (port: number | string, urlPath: string) => 
       );
     }
     console.log('--------------------------------------------');
-  } catch (error) {
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e: unknown) {
     console.log('\n🚀 Serving!');
     console.log('--------------------------------------------');
     console.log(`Local: http://0.0.0.0:${port}/${urlPath}`);
