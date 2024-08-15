@@ -149,6 +149,7 @@ docker pull hexboy2011/maven-mirror-tool:latest
 docker run -d \
 -p 8008:8008 \
 -v /your/custom/cache/dir:/home/node/app/local-cache \
+-v /your/config.local.yml:/home/node/app/config.local.yml \
 hexboy2011/maven-mirror-tool:latest
 ```
 
@@ -159,6 +160,8 @@ hexboy2011/maven-mirror-tool:latest
 - `-p 8008:8008`: Maps port 8008 on your host to port 8008 in the container.
 
 - `-v /your/custom/cache/dir:/home/node/app/local-cache`: Binds the directory /your/custom/cache/dir on your host to /home/node/app/local-cache in the container, allowing the container to store cached artifacts locally.
+
+- `-v /your/config.local.yml:/home/node/app/config.local.yml`: Binds the file /your/config.local.yml on your host to /home/node/app/config.local.yml in the container, allowing the container to use your custom config file.
 
 ## Contributing
 
