@@ -1,9 +1,10 @@
-ARG NODE_VERSION=22
+ARG NODE_VERSION=22.6
+ARG ALPINE_VERSION=3.20
 
-FROM node:${NODE_VERSION}-alpine
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION}
 
 # Use production node environment by default.
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # install and use yarn 4.x
 RUN corepack prepare yarn@4.3.1
