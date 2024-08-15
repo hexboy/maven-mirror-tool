@@ -28,4 +28,4 @@ COPY --chown=node . .
 EXPOSE 8008
 
 # Run the application.
-CMD yarn && yarn run pm2 start --attach --env ${NODE_ENV}
+CMD yarn workspaces focus --production && yarn run pm2 start --attach --env ${NODE_ENV}
