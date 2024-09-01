@@ -2,9 +2,9 @@ module.exports = {
   apps: [
     {
       name: 'mmt-server',
-      script: 'tsx src/index.ts --port=${PORT}',
+      script: 'tsx src/index.ts',
       max_memory_restart: '300M',
-      env_production: {
+      env: {
         NODE_ENV: 'production',
       },
       env_development: {

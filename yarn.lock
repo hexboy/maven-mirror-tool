@@ -528,13 +528,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimist@npm:^1.2.5":
-  version: 1.2.5
-  resolution: "@types/minimist@npm:1.2.5"
-  checksum: 10c0/3f791258d8e99a1d7d0ca2bda1ca6ea5a94e5e7b8fc6cde84dd79b0552da6fb68ade750f0e17718f6587783c24254bbca0357648dd59dc3812c150305cabdc46
-  languageName: node
-  linkType: hard
-
 "@types/morgan@npm:^1.9.9":
   version: 1.9.9
   resolution: "@types/morgan@npm:1.9.9"
@@ -2727,7 +2720,6 @@ __metadata:
     "@types/express": "npm:^4.17.21"
     "@types/got": "npm:^9.6.12"
     "@types/js-yaml": "npm:^4.0.9"
-    "@types/minimist": "npm:^1.2.5"
     "@types/morgan": "npm:^1.9.9"
     chalk: "npm:^5.3.0"
     eslint: "npm:^9.9.1"
@@ -2738,7 +2730,6 @@ __metadata:
     got: "npm:^14.4.2"
     js-yaml: "npm:^4.1.0"
     lefthook: "npm:^1.7.14"
-    minimist: "npm:^1.2.8"
     morgan: "npm:^1.10.0"
     pm2: "npm:^5.4.2"
     prettier: "npm:^3.3.3"
@@ -2841,13 +2832,6 @@ __metadata:
   dependencies:
     brace-expansion: "npm:^2.0.1"
   checksum: 10c0/de96cf5e35bdf0eab3e2c853522f98ffbe9a36c37797778d2665231ec1f20a9447a7e567cb640901f89e4daaa95ae5d70c65a9e8aa2bb0019b6facbc3c0575ed
-  languageName: node
-  linkType: hard
-
-"minimist@npm:^1.2.8":
-  version: 1.2.8
-  resolution: "minimist@npm:1.2.8"
-  checksum: 10c0/19d3fcdca050087b84c2029841a093691a91259a47def2f18222f41e7645a0b7c44ef4b40e88a1e58a40c84d2ef0ee6047c55594d298146d0eb3f6b737c20ce6
   languageName: node
   linkType: hard
 
