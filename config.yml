@@ -29,12 +29,6 @@ PROXIES:
     protocol: socks5
 
 REPOSITORIES:
-  - name: iranrepo
-    url: https://repo.ito.gov.ir/gradle/maven-central
-    fileTypes:
-      - .jar
-      - .aar
-
   - name: central
     url: https://repo1.maven.org/maven2
 
