@@ -24,7 +24,7 @@ const cacheRequestHandler: RequestHandler = (req, res, next) => {
     return res.sendStatus(403);
   }
 
-  const fileName = url.split('/').pop() || '';
+  const fileName = url.split('/').pop() ?? '';
   const fileType = fileName.slice(fileName.lastIndexOf('.'));
 
   if (!VALID_FILE_TYPES.includes(fileType)) {

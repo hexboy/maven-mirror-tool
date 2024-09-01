@@ -5,13 +5,15 @@ import fs, { createWriteStream } from 'fs';
 
 import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config';
 import { ProxyAgent } from 'proxy-agent';
+import { TServer } from 'app/types';
 
 export class GotDownloader {
-  db: {
-    [K: string]: {
+  db: Record<
+    string,
+    {
       serverIndex: number;
-    };
-  } = {};
+    }
+  > = {};
 
   getAgent = (srv: TServer) => {
     const proxy = srv.proxy && srv.proxy in PROXIES ? PROXIES[srv.proxy] : null;
@@ -73,19 +75,19 @@ export class GotDownloader {
   };
 
   head = (url: string, srv: TServer, res: Response) => {
-    return got
+    got
       .head(srv.url + url, this.getOptions(srv, 'head'))
       .then((r) => {
         res.set(r.headers);
         res.sendStatus(r.statusCode);
       })
-      .catch((r) => {
-        res.sendStatus(r.statusCode);
+      .catch((r: { statusCode?: number }) => {
+        res.sendStatus(r?.statusCode ?? 404);
       });
   };
 
   download = (url: string, srv: TServer, res: Response) => {
-    const fileName = url.split('/').pop() || '';
+    const fileName = url.split('/').pop() ?? '';
     const tmpPath = path.resolve(TMP_DIR, fileName);
     const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, '');
     const stream = got.stream(srv.url + url, this.getOptions(srv));

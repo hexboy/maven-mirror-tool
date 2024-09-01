@@ -23,7 +23,7 @@ export const printServedEndpoints = (
     const interfaces = os.networkInterfaces();
     const list = Object.keys(interfaces)
       .map((name) =>
-        (interfaces[name] || []).filter((item) => item.family === 'IPv4')
+        (interfaces[name] ?? []).filter((item) => item.family === 'IPv4')
       )
       .filter((l) => l.length > 0)
       .flat();

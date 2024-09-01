@@ -9,7 +9,15 @@ const config = yaml.load(
     ? fs.readFileSync('config.local.yml', 'utf8')
     : fs.readFileSync('config.yml', 'utf8')
 ) as IConfig;
-const args = minimist(process.argv);
+const args = minimist(process.argv, {
+  string: ['cache-dir', 'port', 'path'],
+  boolean: ['verbose'],
+}) as {
+  path?: string;
+  port?: number;
+  verbose?: boolean;
+  'cache-dir'?: string;
+};
 
 const {
   REPOSITORIES,
@@ -18,17 +26,17 @@ const {
   VALID_FILE_TYPES = [],
 } = config;
 
-const PORT = args.port || config.PORT || 8008;
+const PORT = args.port ?? config.PORT ?? 8008;
 const CACHE_DIR = path.resolve(
-  args['cache-dir'] || config.CACHE_DIR,
+  args['cache-dir'] ?? config.CACHE_DIR,
   '__MMT_CACHE__'
 );
 const TMP_DIR = path.resolve(
-  args['cache-dir'] || config.CACHE_DIR,
+  args['cache-dir'] ?? config.CACHE_DIR,
   '__MMT_TMP__'
 );
-const DEFAULT_PATH = args.path || config.DEFAULT_PATH || 'v1';
-const VERBOSE = args.verbose || config.LOG_REQUESTS || false;
+const DEFAULT_PATH = args.path ?? config.DEFAULT_PATH ?? 'v1';
+const VERBOSE = args.verbose ?? config.LOG_REQUESTS ?? false;
 
 export {
   PORT,

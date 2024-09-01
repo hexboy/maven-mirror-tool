@@ -1,4 +1,4 @@
-type TProxy = {
+interface TProxy {
   protocol: 'http' | 'https' | 'socks5';
   host: string;
   port: number;
@@ -6,9 +6,9 @@ type TProxy = {
     username: string;
     password: string;
   };
-};
+}
 
-type TServer = {
+interface TServer {
   name: string;
   url: string;
   fileTypes?: string[];
@@ -17,7 +17,7 @@ type TServer = {
     username: string;
     password: string;
   };
-};
+}
 
 export interface IConfig {
   PORT: number;
@@ -27,5 +27,5 @@ export interface IConfig {
   LOG_REQUESTS?: boolean;
   IGNORE_FILES?: string[];
   VALID_FILE_TYPES?: string[];
-  PROXIES: { [K: string]: TProxy };
+  PROXIES: Record<string, TProxy>;
 }
