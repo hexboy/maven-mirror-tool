@@ -92,13 +92,35 @@ export class GotDownloader {
     const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, '');
     const stream = got.stream(srv.url + url, this.getOptions(srv));
     const fileWriterStream = createWriteStream(tmpPath);
-    stream.pipe(fileWriterStream).on('finish', () => {
-      console.log(`✅ [${srv.name}]`, url);
-      this.moveToCache(fileName, outputDir);
+
+    stream.pipe(res);
+    stream.pipe(fileWriterStream);
+
+    stream.once('downloadProgress', ({ total }) => {
+      if (total) {
+        console.log(`⬇️ [${srv.name}]`, url);
+      }
+    });
+
+    stream.on('error', (err) => {
+      console.log('❌', srv.url + url);
+      console.log('⛔️', err.message);
+      res.destroy(err);
+    });
+
+    stream.on('finish', () => {
       delete this.db[url];
     });
 
-    stream.pipe(res).on('error', console.error);
+    stream.on('response', (res) => {
+      res.on('end', () => {
+        delete this.db[url];
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`✅ [${srv.name}]`, url);
+          this.moveToCache(fileName, outputDir);
+        }
+      });
+    });
   };
 
   moveToCache = (fileName: string, outputDir: string) => {
