@@ -98,7 +98,7 @@ export class GotDownloader {
 
     stream.once('downloadProgress', ({ total }) => {
       if (total) {
-        console.log(`⬇️ [${srv.name}]`, url);
+        console.log(`📥 ⏳ [${srv.name}]`, url);
       }
     });
 
