@@ -15,11 +15,12 @@ import {
 } from './config';
 import { getCachedServer, printServedEndpoints } from './utils';
 import { GotDownloader } from './downloader/got';
+import { LegacyGradlePluginsHandler } from './gradle-plugins';
 
 const downloader = new GotDownloader();
 
 const cacheRequestHandler: RequestHandler = (req, res, next) => {
-  const url = (req.originalUrl || req.url).replace(/^\/\w+\//, '/');
+  const url = req.url.replace(/^\/\w+\//, '/');
   if (req.method !== 'HEAD' && req.method !== 'GET') {
     return res.sendStatus(403);
   }
@@ -76,6 +77,7 @@ const app = express();
 if (VERBOSE) {
   app.use(morgan('combined'));
 }
+app.get('*', LegacyGradlePluginsHandler);
 app.get('*', cacheRequestHandler);
 app.listen(PORT, () => {
   console.log('add this ⬇️  in build.gradle');
