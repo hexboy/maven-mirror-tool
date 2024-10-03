@@ -79,10 +79,14 @@ export class GotDownloader {
       .head(srv.url + url, this.getOptions(srv, 'head'))
       .then((r) => {
         res.set(r.headers);
-        res.sendStatus(r.statusCode);
+        if (!res.headersSent) {
+          res.sendStatus(r.statusCode);
+        }
       })
       .catch((r: { statusCode?: number }) => {
-        res.sendStatus(r?.statusCode ?? 404);
+        if (!res.headersSent) {
+          res.sendStatus(r?.statusCode ?? 404);
+        }
       });
   };
 

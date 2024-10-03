@@ -57,10 +57,16 @@ const cacheRequestHandler: RequestHandler = (req, res, next) => {
           downloader.download(url, srv, res);
         }
       } else {
-        res.sendStatus(403);
+        if (!res.headersSent) {
+          res.sendStatus(403);
+        }
       }
     })
-    .catch(() => res.sendStatus(403));
+    .catch(() => {
+      if (!res.headersSent) {
+        res.sendStatus(403);
+      }
+    });
 };
 
 // init cache dir
