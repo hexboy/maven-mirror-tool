@@ -1,11 +1,12 @@
 import path from 'path';
 import got, { GotOptions } from 'got';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import fs, { createWriteStream } from 'fs';
 
 import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config';
 import { ProxyAgent } from 'proxy-agent';
 import { TServer } from 'app/types';
+import { extractFileInfo } from '../utils';
 
 export class GotDownloader {
   db: Record<
@@ -74,7 +75,7 @@ export class GotDownloader {
       .catch(() => null);
   };
 
-  head = (url: string, srv: TServer, res: Response) => {
+  head = ({ url, srv, res }: { url: string; srv: TServer; res: Response }) => {
     got
       .head(srv.url + url, this.getOptions(srv, 'head'))
       .then((r) => {
@@ -90,10 +91,19 @@ export class GotDownloader {
       });
   };
 
-  download = (url: string, srv: TServer, res: Response) => {
-    const fileName = url.split('/').pop() ?? '';
-    const tmpPath = path.resolve(TMP_DIR, fileName);
-    const outputDir = path.join(CACHE_DIR, srv.name, url).replace(fileName, '');
+  download = ({
+    url,
+    srv,
+    req,
+    res,
+  }: {
+    url: string;
+    srv: TServer;
+    req: Request;
+    res: Response;
+  }) => {
+    const { fileName, relativePath } = extractFileInfo(url);
+    const tmpPath = path.join(TMP_DIR, fileName);
     const stream = got.stream(srv.url + url, this.getOptions(srv));
     const fileWriterStream = createWriteStream(tmpPath);
 
@@ -121,19 +131,39 @@ export class GotDownloader {
         delete this.db[url];
         if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
           console.log(`✅ [${srv.name}]`, url);
-          this.moveToCache(fileName, outputDir);
+          const destPath = path.join(
+            CACHE_DIR,
+            srv.name,
+            relativePath,
+            fileName
+          );
+          this.copyFileToCache(tmpPath, destPath);
+          if (req.headers['alias-url']) {
+            const info = extractFileInfo(req.headers['alias-url'] as string);
+            const aliasPath = path.join(
+              CACHE_DIR,
+              srv.name,
+              info.relativePath,
+              info.fileName
+            );
+            this.copyFileToCache(destPath, aliasPath, false);
+          }
         }
       });
     });
   };
 
-  moveToCache = (fileName: string, outputDir: string) => {
-    const tmpPath = path.resolve(TMP_DIR, fileName);
-    if (fs.existsSync(tmpPath) ? fs.statSync(tmpPath).size : 0) {
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
+  copyFileToCache = (source: string, dest: string, moveFile = true) => {
+    const { relativePath: destDir } = extractFileInfo(dest);
+    if (fs.existsSync(source) ? fs.statSync(source).size > 0 : false) {
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
       }
-      fs.renameSync(tmpPath, path.join(outputDir, fileName));
+      if (moveFile) {
+        fs.renameSync(source, dest);
+      } else {
+        fs.copyFileSync(source, dest);
+      }
     }
   };
 }

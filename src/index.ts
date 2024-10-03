@@ -2,72 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import morgan from 'morgan';
-import express, { RequestHandler } from 'express';
+import express from 'express';
 
-import {
-  PORT,
-  TMP_DIR,
-  VERBOSE,
-  CACHE_DIR,
-  DEFAULT_PATH,
-  IGNORE_FILES,
-  VALID_FILE_TYPES,
-} from './config';
-import { getCachedServer, printServedEndpoints } from './utils';
-import { GotDownloader } from './downloader/got';
-import { LegacyGradlePluginsHandler } from './gradle-plugins';
+import { PORT, TMP_DIR, VERBOSE, CACHE_DIR, DEFAULT_PATH } from './config';
+import { printServedEndpoints } from './utils';
 
-const downloader = new GotDownloader();
-
-const cacheRequestHandler: RequestHandler = (req, res, next) => {
-  const url = req.url.replace(/^\/\w+\//, '/');
-  if (req.method !== 'HEAD' && req.method !== 'GET') {
-    return res.sendStatus(403);
-  }
-
-  const fileName = url.split('/').pop() ?? '';
-  const fileType = fileName.slice(fileName.lastIndexOf('.'));
-
-  if (!VALID_FILE_TYPES.includes(fileType)) {
-    console.log('♻️', url);
-    return next();
-  }
-
-  if (IGNORE_FILES.find((str) => url.includes(str))) {
-    console.log('❌ [404]', url);
-    return res.status(404);
-  }
-
-  const server = getCachedServer(url);
-  if (server) {
-    const cachedPath = path.join(CACHE_DIR, server.name, url);
-    console.log(`📦 [${server.name}]`, url);
-    return res.sendFile(cachedPath);
-  }
-
-  console.log(req.method, url);
-
-  downloader
-    .getSupportedServer(url)
-    .then((srv) => {
-      if (srv) {
-        if (req.method === 'HEAD') {
-          downloader.head(url, srv, res);
-        } else {
-          downloader.download(url, srv, res);
-        }
-      } else {
-        if (!res.headersSent) {
-          res.sendStatus(403);
-        }
-      }
-    })
-    .catch(() => {
-      if (!res.headersSent) {
-        res.sendStatus(403);
-      }
-    });
-};
+import { CacheRequestHandler } from './handlers/cache-handler';
+import { ValidateRequestHandler } from './handlers/validate-request-handler';
+import { LegacyGradlePluginsHandler } from './handlers/gradle-plugins-handler';
 
 // init cache dir
 if (!fs.existsSync(path.resolve(CACHE_DIR))) {
@@ -83,8 +25,9 @@ const app = express();
 if (VERBOSE) {
   app.use(morgan('combined'));
 }
+app.get('*', ValidateRequestHandler);
 app.get('*', LegacyGradlePluginsHandler);
-app.get('*', cacheRequestHandler);
+app.get('*', CacheRequestHandler);
 app.listen(PORT, () => {
   console.log('add this ⬇️  in build.gradle');
   console.log(

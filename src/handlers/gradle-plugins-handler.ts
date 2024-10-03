@@ -1,23 +1,25 @@
 import { RequestHandler } from 'express';
 import got from 'got';
+import { extractFileInfo, getCachedServer } from '../utils';
 
 const gradleApi = 'https://plugins.gradle.org/api/gradle/4.10/plugin/use';
 
 export const LegacyGradlePluginsHandler: RequestHandler = (req, res, next) => {
   const url = req.originalUrl ?? req.url;
   if (!url.includes('.gradle.plugin/')) {
-    next();
+    return next();
   }
 
-  if (req.method !== 'HEAD' && req.method !== 'GET') {
-    return res.sendStatus(403);
+  const server = getCachedServer(url.replace(/^\/\w+\//, '/'));
+  if (server) {
+    return next();
   }
 
   try {
-    const basePath = /^\/[^/]*(?=\/)/.exec(url)?.[0];
-    const fileName = /[^/]+$/.exec(url)?.[0];
-    const version = /[^/]+$/.exec(url.replace(`/${fileName}`, ''))?.[0];
-    const packageId = fileName?.replace(/\.gradle\.plugin.*$/, '');
+    const { fileName, relativePath } = extractFileInfo(url);
+    const basePath = /^\/[^/]*(?=\/)/.exec(relativePath)?.[0];
+    const version = /[^/]+$/.exec(relativePath)?.[0];
+    const packageId = fileName.replace(/\.gradle\.plugin.*$/, '');
     const endpoint = `${gradleApi}/${packageId}/${version}`;
     got
       .get(endpoint)
@@ -39,6 +41,7 @@ export const LegacyGradlePluginsHandler: RequestHandler = (req, res, next) => {
         )?.[0];
         const newUrl = `${basePath}/${/^[\w.]+(?=:)/.exec(info.implementation.gav)?.[0]?.replaceAll('.', '/')}/${newId}/${version}/${newFileName}`;
         console.log('🔀 [301]', url);
+        req.headers['alias-url'] = url.replace(/^\/\w+\//, '/');
         req.url = newUrl;
         next();
       })

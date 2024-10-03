@@ -51,3 +51,30 @@ export const printServedEndpoints = (
     console.log('--------------------------------------------');
   }
 };
+
+export const extractFileInfo = (url: string) => {
+  // Split the pathname into segments
+  const segments = url.split('/');
+
+  // Get the last segment (filename)
+  const filename = segments[segments.length - 1].replace(/\?.*$/, '');
+
+  // Extract the file extension
+  const fileExtension = filename.split('.').pop();
+
+  // Construct the relative path (excluding the filename)
+  const relativePath = segments.slice(0, -1).join('/');
+
+  // Create the output object
+  const fileInfo = {
+    fileName: filename,
+    relativePath: relativePath,
+    fileExtension: fileExtension,
+  } as {
+    fileName: string;
+    relativePath: string;
+    fileExtension: string;
+  };
+
+  return fileInfo;
+};
