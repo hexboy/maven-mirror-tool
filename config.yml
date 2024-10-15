@@ -36,6 +36,9 @@ REPOSITORIES:
     url: https://dl.google.com/dl/android/maven2
     proxy: fodev
 
+  - name: maven-google
+    url: https://maven.google.com
+
   - name: google-aliyun
     url: https://maven.aliyun.com/repository/google
 
