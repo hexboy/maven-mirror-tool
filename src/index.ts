@@ -38,7 +38,7 @@ app.listen(PORT, () => {
   console.log('\nadd this ⬇️  in build.gradle.kts');
   console.log(
     chalk.green(
-      `maven {\n  url = uri("http://127.0.0.1:${PORT}/${DEFAULT_PATH}")\n  isAllowInsecureProtocol = true\n}`
+      `maven { url = uri("http://127.0.0.1:${PORT}/${DEFAULT_PATH}"); isAllowInsecureProtocol = true }`
     )
   );
 
