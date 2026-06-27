@@ -7,34 +7,34 @@ import { getCachedServer } from '../utils';
 
 const downloader = new GotDownloader();
 
-export const CacheRequestHandler: RequestHandler = (req, res) => {
-  const url = req.url.replace(/^\/\w+\//, '/');
+export const CacheRequestHandler: RequestHandler = (request, response) => {
+  const url = request.url.replace(/^\/\w+\//, '/');
 
   const server = getCachedServer(url);
   if (server) {
     const cachedPath = path.join(CACHE_DIR, server.name, url);
     console.log(`📦 [${server.name}]`, url);
-    return res.sendFile(cachedPath);
+    return response.sendFile(cachedPath);
   }
 
   downloader
     .getSupportedServer(url)
     .then((srv) => {
       if (srv) {
-        if (req.method === 'HEAD') {
-          downloader.head({ url, srv, res });
+        if (request.method === 'HEAD') {
+          return downloader.head({ url, srv, response });
         } else {
-          downloader.download({ url, srv, res, req });
+          downloader.download({ url, srv, response, request });
         }
       } else {
-        if (!res.headersSent) {
-          res.sendStatus(403);
+        if (!response.headersSent) {
+          response.sendStatus(403);
         }
       }
     })
     .catch(() => {
-      if (!res.headersSent) {
-        res.sendStatus(403);
+      if (!response.headersSent) {
+        response.sendStatus(403);
       }
     });
 };

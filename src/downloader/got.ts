@@ -8,8 +8,22 @@ import { ProxyAgent } from 'proxy-agent';
 import { TServer } from 'app/types';
 import { extractFileInfo } from '../utils';
 
+interface DownloadEntry {
+  responses: Set<Response>;
+  request: Request;
+  srv: TServer;
+  tmpPath: string;
+  relativePath: string;
+  fileName: string;
+  url: string;
+  headersSent: boolean;
+  statusCode: number;
+  responseHeaders: unknown;
+}
+
 export class GotDownloader {
-  supportedServer = new Map<string, number>();
+  private pickedServer = new Map<string, number>();
+  private activeDownloads = new Map<string, DownloadEntry>();
 
   getAgent = (srv: TServer) => {
     const proxy = srv.proxy && srv.proxy in PROXIES ? PROXIES[srv.proxy] : null;
@@ -58,7 +72,7 @@ export class GotDownloader {
   };
 
   getSupportedServer = async (url: string) => {
-    const serverIndex = this.supportedServer.get(url);
+    const serverIndex = this.pickedServer.get(url);
     if (serverIndex !== undefined) {
       return REPOSITORIES[serverIndex];
     }
@@ -71,7 +85,7 @@ export class GotDownloader {
         await this.checkServer(url, srv, signal);
         // Abort all other requests as soon as we get the first success
         controller.abort();
-        this.supportedServer.set(url, index);
+        this.pickedServer.set(url, index);
         return srv;
       } catch {
         // If the request was aborted, or failed (network error, timeout, etc.), return null
@@ -86,40 +100,113 @@ export class GotDownloader {
     }
   };
 
-  head = ({ url, srv, res }: { url: string; srv: TServer; res: Response }) => {
-    got
-      .head(srv.url + url, this.getOptions(srv, 'head'))
-      .then((r) => {
-        res.set(r.headers);
-        if (!res.headersSent) {
-          res.sendStatus(r.statusCode);
-        }
-      })
-      .catch((r: { statusCode?: number }) => {
-        if (!res.headersSent) {
-          res.sendStatus(r?.statusCode ?? 404);
-        }
-      });
+  head = async ({
+    url,
+    srv,
+    response,
+  }: {
+    url: string;
+    srv: TServer;
+    response: Response;
+  }) => {
+    try {
+      const result = await got.head(
+        srv.url + url,
+        this.getOptions(srv, 'head')
+      );
+      response.set(result.headers);
+      if (!response.headersSent) {
+        response.sendStatus(result.statusCode);
+      }
+    } catch (error: unknown) {
+      if (!response.headersSent) {
+        response.sendStatus(
+          +((error as { statusCode?: number }).statusCode ?? 404)
+        );
+      }
+    }
   };
 
   download = ({
     url,
     srv,
-    req,
-    res,
+    request,
+    response,
   }: {
     url: string;
     srv: TServer;
-    req: Request;
-    res: Response;
+    request: Request;
+    response: Response;
   }) => {
     const { fileName, relativePath } = extractFileInfo(url);
     const tmpPath = path.join(TMP_DIR, fileName);
+
+    // Check if download for this URL is already in progress
+    const existing = this.activeDownloads.get(url);
+    if (existing) {
+      // Send headers if already received
+      if (existing.headersSent && !response.headersSent) {
+        response.status(existing.statusCode);
+        response.set(existing.responseHeaders as Record<string, string>);
+      }
+
+      // Read file first, then add to responses to prevent interleaving
+      const addToResponses = () => {
+        existing.responses.add(response);
+        // Remove response on client disconnect
+        request.on('close', () => {
+          existing.responses.delete(response);
+        });
+      };
+
+      // Send file buffer to the new response
+      if (fs.existsSync(existing.tmpPath)) {
+        const fileStream = fs.createReadStream(existing.tmpPath);
+        fileStream.pipe(response, { end: false });
+        fileStream.on('end', addToResponses);
+        fileStream.on('error', () => {
+          if (!response.destroyed) response.destroy();
+          addToResponses();
+        });
+      } else {
+        addToResponses();
+      }
+
+      console.log(`🔗 [${srv.name}]`, url);
+      return;
+    }
+
+    // Start new download
+    const entry: DownloadEntry = {
+      responses: new Set([response]),
+      request,
+      srv,
+      tmpPath,
+      relativePath,
+      fileName,
+      url,
+      headersSent: false,
+      statusCode: 200,
+      responseHeaders: {},
+    };
+    this.activeDownloads.set(url, entry);
+
     const stream = got.stream(srv.url + url, this.getOptions(srv));
     const fileWriterStream = createWriteStream(tmpPath);
 
-    stream.pipe(res);
-    stream.pipe(fileWriterStream);
+    // Pipe to all waiting responses
+    const pipeToResponses = (chunk: Buffer) => {
+      for (const res of entry.responses) {
+        if (!res.destroyed) {
+          res.write(chunk);
+        }
+      }
+      fileWriterStream.write(chunk);
+    };
+
+    stream.on('data', (chunk: Buffer) => {
+      pipeToResponses(chunk);
+    });
 
     stream.once('downloadProgress', ({ total }) => {
       if (total) {
@@ -130,20 +217,46 @@ export class GotDownloader {
     stream.on('error', (err) => {
       console.log('❌', srv.url + url);
       console.log('⛔️', err.message);
-      res.destroy(err);
+      // Destroy all waiting responses
+      for (const res of entry.responses) {
+        if (!res.destroyed) {
+          res.destroy(err);
+        }
+      }
+      fileWriterStream.destroy();
+      this.activeDownloads.delete(url);
     });
 
-    stream.on('finish', () => {
-      this.supportedServer.delete(url);
+    stream.on('end', () => {
+      fileWriterStream.end();
+      // End all waiting responses
+      for (const res of entry.responses) {
+        if (!res.destroyed) {
+          res.end();
+        }
+      }
+      this.activeDownloads.delete(url);
+      this.pickedServer.delete(url);
     });
 
-    stream.on('response', (response: GotResponse) => {
-      response.on('end', () => {
-        this.supportedServer.delete(url);
+    stream.on('response', (gotResponse: GotResponse) => {
+      entry.headersSent = true;
+      entry.statusCode = gotResponse.statusCode;
+      entry.responseHeaders = gotResponse.headers;
+
+      // Set headers on all responses
+      for (const res of entry.responses) {
+        if (!res.headersSent) {
+          res.status(gotResponse.statusCode);
+          res.set(gotResponse.headers);
+        }
+      }
+
+      gotResponse.on('end', () => {
         if (
-          response.statusCode &&
-          response.statusCode >= 200 &&
-          response.statusCode < 300
+          gotResponse.statusCode &&
+          gotResponse.statusCode >= 200 &&
+          gotResponse.statusCode < 300
         ) {
           console.log(`✅ [${srv.name}]`, url);
           const destPath = path.join(
@@ -153,8 +266,10 @@ export class GotDownloader {
             fileName
           );
           this.copyFileToCache(tmpPath, destPath);
-          if (req.headers['alias-url']) {
-            const info = extractFileInfo(req.headers['alias-url'] as string);
+          if (request.headers['alias-url']) {
+            const info = extractFileInfo(
+              request.headers['alias-url'] as string
+            );
             const aliasPath = path.join(
               CACHE_DIR,
               srv.name,
@@ -165,6 +280,12 @@ export class GotDownloader {
           }
         }
       });
+    });
+
+    // Cleanup on client disconnect
+    request.on('close', () => {
+      entry.responses.delete(response);
+      this.pickedServer.delete(url);
     });
   };
 
