@@ -25,9 +25,9 @@ const app = express();
 if (VERBOSE) {
   app.use(morgan('combined'));
 }
-app.get('*', ValidateRequestHandler);
-app.get('*', LegacyGradlePluginsHandler);
-app.get('*', CacheRequestHandler);
+app.get('{*splat}', ValidateRequestHandler);
+app.get('{*splat}', LegacyGradlePluginsHandler);
+app.get('{*splat}', CacheRequestHandler);
 app.listen(PORT, () => {
   console.log('add this ⬇️  in build.gradle');
   console.log(

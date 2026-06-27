@@ -1,5 +1,5 @@
 import path from 'path';
-import got, { GotOptions } from 'got';
+import got, { type StreamOptions, type Response as GotResponse } from 'got';
 import type { Response, Request } from 'express';
 import fs, { createWriteStream } from 'fs';
 
@@ -9,12 +9,7 @@ import { TServer } from 'app/types';
 import { extractFileInfo } from '../utils';
 
 export class GotDownloader {
-  db: Record<
-    string,
-    {
-      serverIndex: number;
-    }
-  > = {};
+  supportedServer = new Map<string, number>();
 
   getAgent = (srv: TServer) => {
     const proxy = srv.proxy && srv.proxy in PROXIES ? PROXIES[srv.proxy] : null;
@@ -29,8 +24,12 @@ export class GotDownloader {
     return null;
   };
 
-  getOptions = (srv: TServer, method: 'get' | 'head' = 'get') => {
-    const options: GotOptions<typeof method> = { method };
+  getOptions = (
+    srv: TServer,
+    method: 'get' | 'head' = 'get',
+    signal?: AbortSignal
+  ) => {
+    const options: StreamOptions = { method, signal };
     const agent = this.getAgent(srv);
     if (agent) {
       options.agent = {
@@ -53,26 +52,38 @@ export class GotDownloader {
     return options;
   };
 
-  checkServer = (url: string, srv: TServer) => {
-    const options = this.getOptions(srv, 'head');
+  checkServer = (url: string, srv: TServer, signal?: AbortSignal) => {
+    const options = this.getOptions(srv, 'head', signal);
     return got.head(srv.url + url, options);
   };
 
   getSupportedServer = async (url: string) => {
-    if (this.db[url]?.serverIndex) {
-      return REPOSITORIES[this.db[url].serverIndex];
+    const serverIndex = this.supportedServer.get(url);
+    if (serverIndex !== undefined) {
+      return REPOSITORIES[serverIndex];
     }
-    const gotPromises = REPOSITORIES.map((srv) => this.checkServer(url, srv));
-    return Promise.any(gotPromises.map((req, index) => req.then(() => index)))
-      .then((index) => {
-        // cancel all got requests
-        gotPromises.forEach((req) => req.cancel());
-        this.db[url] = {
-          serverIndex: index,
-        };
-        return REPOSITORIES[index];
-      })
-      .catch(() => null);
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const requests = REPOSITORIES.map(async (srv, index) => {
+      try {
+        await this.checkServer(url, srv, signal);
+        // Abort all other requests as soon as we get the first success
+        controller.abort();
+        this.supportedServer.set(url, index);
+        return srv;
+      } catch {
+        // If the request was aborted, or failed (network error, timeout, etc.), return null
+        return null;
+      }
+    });
+
+    try {
+      return await Promise.race(requests);
+    } catch {
+      return null;
+    }
   };
 
   head = ({ url, srv, res }: { url: string; srv: TServer; res: Response }) => {
@@ -112,7 +123,7 @@ export class GotDownloader {
 
     stream.once('downloadProgress', ({ total }) => {
       if (total) {
-        console.log(`📥 ⏳ [${srv.name}]`, url);
+        console.log(`⏳ [${srv.name}]`, url);
       }
     });
 
@@ -123,13 +134,17 @@ export class GotDownloader {
     });
 
     stream.on('finish', () => {
-      delete this.db[url];
+      this.supportedServer.delete(url);
     });
 
-    stream.on('response', (res) => {
-      res.on('end', () => {
-        delete this.db[url];
-        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+    stream.on('response', (response: GotResponse) => {
+      response.on('end', () => {
+        this.supportedServer.delete(url);
+        if (
+          response.statusCode &&
+          response.statusCode >= 200 &&
+          response.statusCode < 300
+        ) {
           console.log(`✅ [${srv.name}]`, url);
           const destPath = path.join(
             CACHE_DIR,

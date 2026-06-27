@@ -132,6 +132,7 @@ dist
 # local cache prefix
 __MMT_CACHE__/
 __MMT_TMP__/
+local-cache/
 
 # local config file
 config.local.yml

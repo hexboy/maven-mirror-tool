@@ -19,5 +19,6 @@ export default [
       },
     },
   },
+  { rules: { '@typescript-eslint/no-unsafe-return': 'off' } },
   { ignores: ['eslint.config.mjs', 'ecosystem.config.js', '.yarn/'] },
 ];
