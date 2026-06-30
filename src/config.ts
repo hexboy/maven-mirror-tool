@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
-import { IConfig } from '../types';
+import { load as loadYaml } from 'js-yaml';
+import type { IConfig } from '../types';
 
-const config = yaml.load(
+const config = loadYaml(
   fs.existsSync('config.local.yml')
     ? fs.readFileSync('config.local.yml', 'utf8')
     : fs.readFileSync('config.yml', 'utf8')

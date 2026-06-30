@@ -2,6 +2,7 @@
   "name": "maven-mirror-tool",
   "version": "1.0.0",
   "main": "src/index.ts",
+  "type": "module",
   "license": "MIT",
   "author": {
     "name": "Hassan Yousefi",
@@ -10,7 +11,7 @@
   },
   "homepage": "https://github.com/hexboy/maven-mirror-tool",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "node --experimental-strip-types src/index.ts",
     "start": "pm2 start --attach",
     "logs": "pm2 logs",
     "monit": "pm2 monit",
@@ -24,8 +25,7 @@
     "js-yaml": "^5.2.0",
     "morgan": "^1.11.0",
     "pm2": "^7.0.1",
-    "proxy-agent": "^8.0.2",
-    "tsx": "^4.22.4"
+    "proxy-agent": "^8.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -43,7 +43,7 @@
     "typescript-eslint": "^8.62.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "packageManager": "yarn@4.17.0"
 }

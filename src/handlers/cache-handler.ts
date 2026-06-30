@@ -1,10 +1,10 @@
 import path from 'path';
-import { RequestHandler } from 'express';
+import type { RequestHandler } from 'express';
 
-import { GotDownloader } from '../downloader/got';
-import { CACHE_DIR } from '../config';
-import { getCachedServer, touchFile } from '../utils';
-import { logger } from '../logger';
+import { GotDownloader } from '../downloader/got.ts';
+import { CACHE_DIR } from '../config.ts';
+import { getCachedServer, touchFile } from '../utils.ts';
+import { logger } from '../logger.ts';
 
 const downloader = new GotDownloader();
 

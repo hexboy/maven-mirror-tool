@@ -11,12 +11,12 @@ import {
   CACHE_DIR,
   DEFAULT_PATH,
   CACHE_TTL_DAYS,
-} from './config';
-import { printServedEndpoints, evictExpiredCacheFiles } from './utils';
+} from './config.ts';
+import { printServedEndpoints, evictExpiredCacheFiles } from './utils.ts';
 
-import { CacheRequestHandler } from './handlers/cache-handler';
-import { ValidateRequestHandler } from './handlers/validate-request-handler';
-import { LegacyGradlePluginsHandler } from './handlers/gradle-plugins-handler';
+import { CacheRequestHandler } from './handlers/cache-handler.ts';
+import { ValidateRequestHandler } from './handlers/validate-request-handler.ts';
+import { LegacyGradlePluginsHandler } from './handlers/gradle-plugins-handler.ts';
 
 // init cache dir
 if (!fs.existsSync(path.resolve(CACHE_DIR))) {

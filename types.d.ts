@@ -8,7 +8,7 @@ interface TProxy {
   };
 }
 
-interface TServer {
+export interface TServer {
   name: string;
   url: string;
   fileTypes?: string[];

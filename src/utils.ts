@@ -2,8 +2,8 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { CACHE_DIR, REPOSITORIES } from './config';
-import { logger } from './logger';
+import { CACHE_DIR, REPOSITORIES } from './config.ts';
+import { logger } from './logger.ts';
 
 export const getCachedServer = (filePath: string) => {
   const srv = REPOSITORIES.find((s) => {

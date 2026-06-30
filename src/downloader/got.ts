@@ -3,11 +3,11 @@ import got, { type StreamOptions, type Response as GotResponse } from 'got';
 import type { Response, Request } from 'express';
 import fs, { createWriteStream } from 'fs';
 
-import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config';
+import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config.ts';
 import { ProxyAgent } from 'proxy-agent';
-import { TServer } from 'app/types';
-import { extractFileInfo } from '../utils';
-import { logger } from '../logger';
+import type { TServer } from '../../types';
+import { extractFileInfo } from '../utils.ts';
+import { logger } from '../logger.ts';
 
 interface DownloadEntry {
   responses: Set<Response>;

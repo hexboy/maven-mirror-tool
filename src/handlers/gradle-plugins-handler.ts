@@ -1,7 +1,7 @@
-import { RequestHandler } from 'express';
+import type { RequestHandler } from 'express';
 import got from 'got';
-import { extractFileInfo, getCachedServer } from '../utils';
-import { logger } from '../logger';
+import { extractFileInfo, getCachedServer } from '../utils.ts';
+import { logger } from '../logger.ts';
 
 const gradleApi = 'https://plugins.gradle.org/api/gradle/4.10/plugin/use';
 

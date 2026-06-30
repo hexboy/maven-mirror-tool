@@ -1,8 +1,8 @@
-import { RequestHandler } from 'express';
+import type { RequestHandler } from 'express';
 
-import { IGNORE_FILES, VALID_FILE_TYPES } from '../config';
-import { extractFileInfo } from '../utils';
-import { logger } from '../logger';
+import { IGNORE_FILES, VALID_FILE_TYPES } from '../config.ts';
+import { extractFileInfo } from '../utils.ts';
+import { logger } from '../logger.ts';
 
 export const ValidateRequestHandler: RequestHandler = (req, res, next) => {
   const url = req.url.replace(/^\/\w+\//, '/');

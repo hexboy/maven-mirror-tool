@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'mmt-server',
-      script: 'tsx src/index.ts',
+      script: 'node',
+      args: '--experimental-strip-types src/index.ts',
       max_memory_restart: '300M',
       env: {
         NODE_ENV: 'production',

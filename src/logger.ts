@@ -1,8 +1,9 @@
-enum Level {
-  Warn = 'w',
-  Info = 'i',
-  Error = 'e',
-}
+const Level = {
+  Warn: 'w',
+  Info: 'i',
+  Error: 'e',
+} as const;
+type Level = (typeof Level)[keyof typeof Level];
 
 const pad = (n: number, width = 2) => String(n).padStart(width, '0');
 
