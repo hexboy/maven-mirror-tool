@@ -11,7 +11,7 @@
   },
   "homepage": "https://github.com/hexboy/maven-mirror-tool",
   "scripts": {
-    "dev": "node --experimental-strip-types src/index.ts",
+    "dev": "node src/index.ts",
     "start": "pm2 start --attach",
     "logs": "pm2 logs",
     "monit": "pm2 monit",
