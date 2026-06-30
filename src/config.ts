@@ -21,6 +21,8 @@ const CACHE_DIR = path.resolve(config.CACHE_DIR, '__MMT_CACHE__');
 const TMP_DIR = path.resolve(config.CACHE_DIR, '__MMT_TMP__');
 const DEFAULT_PATH = config.DEFAULT_PATH ?? 'v1';
 const VERBOSE = config.LOG_REQUESTS ?? false;
+// Unset (undefined) means cached artifacts are kept forever, matching prior behavior.
+const CACHE_TTL_DAYS = config.CACHE_TTL_DAYS;
 
 export {
   PORT,
@@ -31,5 +33,6 @@ export {
   DEFAULT_PATH,
   IGNORE_FILES,
   REPOSITORIES,
+  CACHE_TTL_DAYS,
   VALID_FILE_TYPES,
 };

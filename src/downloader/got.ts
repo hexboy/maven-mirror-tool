@@ -7,6 +7,7 @@ import { PROXIES, CACHE_DIR, TMP_DIR, REPOSITORIES } from '../config';
 import { ProxyAgent } from 'proxy-agent';
 import { TServer } from 'app/types';
 import { extractFileInfo } from '../utils';
+import { logger } from '../logger';
 
 interface DownloadEntry {
   responses: Set<Response>;
@@ -172,7 +173,7 @@ export class GotDownloader {
         addToResponses();
       }
 
-      console.log(`🔗 [${srv.name}]`, url);
+      logger.info(`🔗 [${srv.name}] ${url}`);
       return;
     }
 
@@ -210,13 +211,13 @@ export class GotDownloader {
 
     stream.once('downloadProgress', ({ total }) => {
       if (total) {
-        console.log(`⏳ [${srv.name}]`, url);
+        logger.info(`⏳ [${srv.name}] ${url}`);
       }
     });
 
     stream.on('error', (err) => {
-      console.log('❌', srv.url + url);
-      console.log('⛔️', err.message);
+      logger.error(`❌ ${srv.url + url}`);
+      logger.error(`⛔️ ${err.message}`);
       // Destroy all waiting responses
       for (const res of entry.responses) {
         if (!res.destroyed) {
@@ -258,7 +259,7 @@ export class GotDownloader {
           gotResponse.statusCode >= 200 &&
           gotResponse.statusCode < 300
         ) {
-          console.log(`✅ [${srv.name}]`, url);
+          logger.info(`✅ [${srv.name}] ${url}`);
           const destPath = path.join(
             CACHE_DIR,
             srv.name,

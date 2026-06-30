@@ -4,6 +4,10 @@ PORT: 8008
 CACHE_DIR: ./local-cache
 LOG_REQUESTS: false
 
+# Delete cached artifacts that haven't been re-downloaded in this many days.
+# Comment out (or remove) to keep cached artifacts forever.
+# CACHE_TTL_DAYS: 365
+
 IGNORE_FILES:
   - react-native-0.61.5.pom
   - -sources.jar

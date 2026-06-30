@@ -4,8 +4,15 @@ import chalk from 'chalk';
 import morgan from 'morgan';
 import express from 'express';
 
-import { PORT, TMP_DIR, VERBOSE, CACHE_DIR, DEFAULT_PATH } from './config';
-import { printServedEndpoints } from './utils';
+import {
+  PORT,
+  TMP_DIR,
+  VERBOSE,
+  CACHE_DIR,
+  DEFAULT_PATH,
+  CACHE_TTL_DAYS,
+} from './config';
+import { printServedEndpoints, evictExpiredCacheFiles } from './utils';
 
 import { CacheRequestHandler } from './handlers/cache-handler';
 import { ValidateRequestHandler } from './handlers/validate-request-handler';
@@ -19,6 +26,16 @@ if (!fs.existsSync(path.resolve(CACHE_DIR))) {
 // init temp dir
 if (!fs.existsSync(path.resolve(TMP_DIR))) {
   fs.mkdirSync(path.resolve(TMP_DIR), { recursive: true });
+}
+
+// evict stale cache entries on startup, then on a recurring sweep
+if (CACHE_TTL_DAYS) {
+  const CACHE_SWEEP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+  evictExpiredCacheFiles(CACHE_DIR, CACHE_TTL_DAYS);
+  setInterval(
+    () => evictExpiredCacheFiles(CACHE_DIR, CACHE_TTL_DAYS!),
+    CACHE_SWEEP_INTERVAL_MS
+  );
 }
 
 const app = express();

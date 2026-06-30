@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import got from 'got';
 import { extractFileInfo, getCachedServer } from '../utils';
+import { logger } from '../logger';
 
 const gradleApi = 'https://plugins.gradle.org/api/gradle/4.10/plugin/use';
 
@@ -40,7 +41,7 @@ export const LegacyGradlePluginsHandler: RequestHandler = (req, res, next) => {
           url.replaceAll(`${info.id}.gradle.plugin`, newId)
         )?.[0];
         const newUrl = `${basePath}/${/^[\w.]+(?=:)/.exec(info.implementation.gav)?.[0]?.replaceAll('.', '/')}/${newId}/${version}/${newFileName}`;
-        console.log('🔀 [301]', url);
+        logger.info(`🔀 [301] ${url}`);
         req.headers['alias-url'] = url.replace(/^\/\w+\//, '/');
         req.url = newUrl;
         next();
@@ -49,8 +50,7 @@ export const LegacyGradlePluginsHandler: RequestHandler = (req, res, next) => {
         next();
       });
   } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    error;
+    logger.warn(`⚠️  failed to resolve legacy gradle plugin ${url}`, error);
     next();
   }
 };

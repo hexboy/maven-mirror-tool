@@ -27,5 +27,6 @@ export interface IConfig {
   LOG_REQUESTS?: boolean;
   IGNORE_FILES?: string[];
   VALID_FILE_TYPES?: string[];
+  CACHE_TTL_DAYS?: number;
   PROXIES: Record<string, TProxy>;
 }

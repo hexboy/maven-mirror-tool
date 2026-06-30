@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 
 import { CACHE_DIR, REPOSITORIES } from './config';
+import { logger } from './logger';
 
 export const getCachedServer = (filePath: string) => {
   const srv = REPOSITORIES.find((s) => {
@@ -52,29 +53,69 @@ export const printServedEndpoints = (
   }
 };
 
-export const extractFileInfo = (url: string) => {
-  // Split the pathname into segments
-  const segments = url.split('/');
+// Eviction only cares about day-level age, so skip the metadata write
+// when the file was already touched recently in this window.
+const TOUCH_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
-  // Get the last segment (filename)
-  const filename = segments[segments.length - 1].replace(/\?.*$/, '');
+// Bump mtime so eviction tracks last-served time, not last-downloaded time
+// (sendFile() never touches the file, so a frequently-served cache hit would
+// otherwise look just as stale as one nobody has asked for in months).
+export const touchFile = (filePath: string) => {
+  try {
+    const { mtimeMs } = fs.statSync(filePath);
+    if (Date.now() - mtimeMs < TOUCH_THRESHOLD_MS) {
+      return;
+    }
+    const now = new Date();
+    fs.utimesSync(filePath, now, now);
+  } catch {
+    // best-effort; a missed touch just makes the file evict a bit early
+  }
+};
 
-  // Extract the file extension
-  const fileExtension = filename.split('.').pop();
+export const evictExpiredCacheFiles = (
+  cacheDir: string,
+  ttlDays: number
+): void => {
+  const maxAgeMs = ttlDays * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - maxAgeMs;
+  let removed = 0;
 
-  // Construct the relative path (excluding the filename)
-  const relativePath = segments.slice(0, -1).join('/');
+  const walk = (dir: string) => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
 
-  // Create the output object
-  const fileInfo = {
-    fileName: filename,
-    relativePath: relativePath,
-    fileExtension: fileExtension,
-  } as {
-    fileName: string;
-    relativePath: string;
-    fileExtension: string;
+    for (const entry of entries) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(entryPath);
+        continue;
+      }
+      const { mtimeMs } = fs.statSync(entryPath);
+      if (mtimeMs < cutoff) {
+        fs.unlinkSync(entryPath);
+        removed += 1;
+      }
+    }
   };
 
-  return fileInfo;
+  walk(cacheDir);
+  if (removed > 0) {
+    logger.info(`🧹 evicted ${removed} cached file(s) older than ${ttlDays}d`);
+  }
+};
+
+export const extractFileInfo = (url: string) => {
+  // Use a dummy base so relative/absolute paths both parse, then strip the query string
+  const pathname = new URL(url, 'http://localhost').pathname;
+
+  const fileName = path.basename(pathname);
+  const relativePath = path.dirname(pathname);
+  const fileExtension = path.extname(fileName).replace(/^\./, '');
+
+  return { fileName, relativePath, fileExtension };
 };
