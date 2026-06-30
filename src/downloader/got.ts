@@ -140,7 +140,7 @@ export class GotDownloader {
     response: Response;
   }) => {
     const { fileName, relativePath } = extractFileInfo(url);
-    const tmpPath = path.join(TMP_DIR, fileName);
+    const tmpPath = path.join(TMP_DIR, relativePath, fileName);
 
     // Check if download for this URL is already in progress
     const existing = this.activeDownloads.get(url);
@@ -193,6 +193,7 @@ export class GotDownloader {
     this.activeDownloads.set(url, entry);
 
     const stream = got.stream(srv.url + url, this.getOptions(srv));
+    fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
     const fileWriterStream = createWriteStream(tmpPath);
 
     // Pipe to all waiting responses
@@ -286,7 +287,6 @@ export class GotDownloader {
     // Cleanup on client disconnect
     request.on('close', () => {
       entry.responses.delete(response);
-      this.pickedServer.delete(url);
     });
   };
 

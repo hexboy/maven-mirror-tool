@@ -14,12 +14,12 @@ export const ValidateRequestHandler: RequestHandler = (req, res, next) => {
 
   if (!VALID_FILE_TYPES.includes('.' + fileExtension)) {
     logger.info(`♻️  [404] ${url}`);
-    return res.status(404);
+    return res.sendStatus(404);
   }
 
   if (IGNORE_FILES.find((str) => url.includes(str))) {
     logger.info(`❌ [404] ${url}`);
-    return res.status(404);
+    return res.sendStatus(404);
   }
 
   logger.info(`${req.method} ${url}`);
