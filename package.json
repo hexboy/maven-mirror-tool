@@ -11,11 +11,12 @@
   },
   "homepage": "https://github.com/hexboy/maven-mirror-tool",
   "scripts": {
-    "dev": "node src/index.ts",
-    "start": "pm2 start --attach",
-    "logs": "pm2 logs",
-    "monit": "pm2 monit",
-    "stop": "pm2 delete mmt-server",
+    "dev": "node --watch src/index.ts",
+    "start": "node src/index.ts",
+    "pm2:start": "pm2 start ecosystem.config.cjs --attach",
+    "pm2:logs": "pm2 logs",
+    "pm2:monit": "pm2 monit",
+    "pm2:stop": "pm2 delete mmt-server",
     "lint": "eslint"
   },
   "dependencies": {

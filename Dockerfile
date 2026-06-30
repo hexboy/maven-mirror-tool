@@ -1,5 +1,5 @@
-ARG NODE_VERSION=22.6
-ARG ALPINE_VERSION=3.20
+ARG NODE_VERSION=24
+ARG ALPINE_VERSION=3.24
 
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION}
 
@@ -7,7 +7,7 @@ FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION}
 ENV NODE_ENV=production
 
 # install and use yarn 4.x
-RUN corepack prepare yarn@4.3.1
+RUN corepack prepare yarn@4.17.0
 
 # Run as a root user.
 USER root
@@ -32,4 +32,4 @@ RUN yarn workspaces focus --production && yarn cache clean
 EXPOSE 8008
 
 # Run the application.
-ENTRYPOINT ["yarn", "run", "pm2", "start", "--attach", "--env", "${NODE_ENV}"]
+ENTRYPOINT ["yarn", "run", "pm2", "start", "ecosystem.config.cjs", "--attach", "--env", "$NODE_ENV"]

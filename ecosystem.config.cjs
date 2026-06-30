@@ -2,10 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'mmt-server',
-      script: 'node',
-      args: 'src/index.ts',
+      script: 'src/index.ts',
+      interpreter: 'node',
       max_memory_restart: '300M',
-      env: {
+      env_production: {
         NODE_ENV: 'production',
       },
       env_development: {
