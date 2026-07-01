@@ -82,20 +82,15 @@ export class GotDownloader {
     const { signal } = controller;
 
     const requests = REPOSITORIES.map(async (srv, index) => {
-      try {
-        await this.checkServer(url, srv, signal);
-        // Abort all other requests as soon as we get the first success
-        controller.abort();
-        this.pickedServer.set(url, index);
-        return srv;
-      } catch {
-        // If the request was aborted, or failed (network error, timeout, etc.), return null
-        return null;
-      }
+      await this.checkServer(url, srv, signal);
+      // Abort all other requests as soon as we get the first success
+      controller.abort();
+      this.pickedServer.set(url, index);
+      return srv;
     });
 
     try {
-      return await Promise.race(requests);
+      return await Promise.any(requests);
     } catch {
       return null;
     }
